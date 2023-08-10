@@ -1,6 +1,6 @@
 import { inputFocus } from 'js/input-focus';
 import { useDispatch } from "react-redux";
-import { addContact } from 'redux/contactsSlice';
+import { addContact } from 'redux/operations';
 
 export default function ContactForm () {
   const dispatch = useDispatch();
@@ -10,11 +10,11 @@ export default function ContactForm () {
     const form = e.target;
 
     const name = form.name.value.trim();
-    const number = form.number.value.trim();
+    const phone = form.number.value.trim();
 
     dispatch(addContact({
       name,
-      number,
+      phone,
     }));
     form.reset();
   };

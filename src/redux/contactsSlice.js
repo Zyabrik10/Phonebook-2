@@ -1,42 +1,47 @@
-import { saveContacts } from 'js/saveContacts';
 import { createSlice } from '@reduxjs/toolkit';
-import { nanoid } from 'nanoid';
+import { deleteContact, fetchContacts, addContact } from './operations';
 
-const initContacts = JSON.parse(localStorage.getItem('contacts')) || [];
+const initContacts = {
+  items: [],
+  isLoading: false,
+  error: null,
+};
 
 const contactsSlice = createSlice({
   name: 'contacts',
   initialState: initContacts,
-  reducers: {
-    addContact: {
-      reducer(state, action) {
-        state.push(action.payload);
-        saveContacts(state);
-      },
-      prepare({ name, number }) {
-        return {
-          payload: {
-            id: nanoid(),
-            name,
-            number,
-          },
-        };
-      },
+  extraReducers: {
+    [fetchContacts.pending]: state => {
+      state.isLoading = true;
     },
-    removeContact: {
-      reducer(state, action) {
-        const index = state.findIndex(contact => contact.id === action.payload);
-        state.splice(index, 1);
-        saveContacts(state);
-      },
-      prepare(id) {
-        return {
-          payload: id,
-        };
-      },
+    [fetchContacts.fulfilled]: (state, action) => {
+      state.isLoading = false;
+      state.error = null;
+      state.items = action.payload;
+    },
+    [fetchContacts.error]: (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    },
+    [deleteContact.fulfilled]: (state, action) => {
+      const index = state.items.findIndex(
+        contact => contact.id === action.payload
+      );
+
+      state.error = null;
+      state.items.splice(index, 1);
+    },
+    [deleteContact.error]: (state, action) => {
+      state.isLoading = false;
+      state.error = action.payload;
+    },
+    [addContact.fulfilled]: (state, action) => {
+      state.items.push(action.payload);
+    },
+    [addContact.error]: (state, action) => {
+      state.error = action.payload;
     },
   },
 });
 
-export const { addContact, removeContact } = contactsSlice.actions;
 export const contactsReducer = contactsSlice.reducer;

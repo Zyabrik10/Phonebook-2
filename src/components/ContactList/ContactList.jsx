@@ -1,25 +1,32 @@
 import { useDispatch, useSelector } from 'react-redux';
-import { getContacts, getFilter } from 'redux/selectors';
-import { removeContact } from 'redux/contactsSlice';
+import { selectContacts, selectFilteredContacts } from 'redux/selectors';
+import { useEffect } from 'react';
+import { fetchContacts, deleteContact } from 'redux/operations';
 
 export default function ContactList() {
   const dispatch = useDispatch();
   
-  const contacts = useSelector(getContacts);
-  const filter = useSelector(getFilter);
-  const filteredContacts = contacts.filter(e => e.name.toLowerCase().includes(filter.toLowerCase()));
+  const { isLoading, error } = useSelector(selectContacts);
+  const filteredContacts = useSelector(selectFilteredContacts);
 
-  const removeFromContactsListHandler = ({ currentTarget }) => {
-    const id = currentTarget.getAttribute('data-id');
-    dispatch(removeContact(id));
+
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch]);
+
+  function removeFromContactsListHandler({ currentTarget: target }) {
+    target.setAttribute("disabled", "true");
+    const id = target.getAttribute('data-id');
+    dispatch(deleteContact(id));
   };
 
-  return filteredContacts.length ? (
-    <ul className="contacts-list global-list">
-      {filteredContacts.map(({ number, name, id }) => (
+  function showContacts() {
+   return filteredContacts.length ? (
+     <ul className="contacts-list global-list">
+      {filteredContacts.map(({ phone, name, id }) => (
         <li key={id}>
           <p className="global-p">
-            {name}: {number}
+            {name}: {phone}
           </p>
           <button
             className="ph-button global-button"
@@ -31,8 +38,15 @@ export default function ContactList() {
         </li>
       ))}
     </ul>
-  ) : (
+    ) : (
     <p className="global-p">No contacts</p>
-  );
+  )
+}
+
+  function showError() {
+    return error ? <p className='global-p'>{error}</p> : showContacts();
+  }
+  
+  return isLoading ? <p className='global-p'>loading...</p> : showError();
 }
 
