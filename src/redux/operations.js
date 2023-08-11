@@ -36,9 +36,17 @@ export const addContact = createAsyncThunk(
         phone,
       };
 
-      const response = await axios.post(`/contacts`, newContact);
+      const response = await axios.get('/contacts');
 
-      return response.data;
+      if (
+        !response.data.filter(({ name }) => name === newContact.name).length
+      ) {
+        const response = await axios.post(`/contacts`, newContact);
+        return response.data;
+      }
+
+      alert('Such contact is already existing');
+      return null;
     } catch (e) {
       thunkAPI.rejectWithValue(e.message);
     }
